@@ -7,8 +7,8 @@ public protocol Action {}
 public typealias Reducer<State> = (_ oldState: State, _ with: Action) -> State
 
 @MainActor
-public final class Store<State> {
-    private var state: State
+public final class Store<State>: ObservableObject {
+    @Published public private(set) var state: State
     private var reducer: Reducer<State>
     private var middlewares: [Middleware<State>]
 
@@ -37,9 +37,5 @@ public final class Store<State> {
                 try await dispatch(action: nextAction)
             }
         }
-    }
-
-    public var currentState: State {
-        return state
     }
 }
