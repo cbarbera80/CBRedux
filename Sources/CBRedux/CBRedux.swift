@@ -6,7 +6,6 @@ public protocol Action {}
 
 public typealias Reducer<State> = (_ oldState: State, _ with: Action) -> State
 
-@MainActor
 public final class Store<State>: ObservableObject {
     @Published public private(set) var state: State
     private var reducer: Reducer<State>
