@@ -1,15 +1,12 @@
 import Foundation
 
-public typealias Middleware<State> = (
-    @escaping (Action) -> Void,
-    @escaping () -> State?,
-    Action
-) async -> Void
+public typealias Middleware<State> = (_ state: State, _ action: Action) async throws -> Action?
 
 public protocol Action {}
 
-public typealias Reducer<State> = (inout State, Action) async -> Void
+public typealias Reducer<State> = (_ oldState: State, _ with: Action) -> State
 
+@MainActor
 public final class Store<State> {
     private var state: State
     private var reducer: Reducer<State>
@@ -25,19 +22,21 @@ public final class Store<State> {
         self.middlewares = middlewares
     }
 
-    public func dispatch(action: Action) async {
-        // Esegui i middleware in ordine
-        for middleware in middlewares {
-            await middleware({ [weak self] action in
-                guard let selfCopy = self else { return }
-                
-                Task {
-                    await selfCopy.dispatch(action: action)
-                }
-            }, { [weak self] in self?.state }, action)
-        }
+    @MainActor
+    public func dispatch(action: Action) async throws {
+        state = reducer(state, action)
 
-        await reducer(&state, action)
+        try await withThrowingTaskGroup(of: Action?.self) { group in
+            middlewares.forEach { middleware in
+                _ = group.addTaskUnlessCancelled {
+                    try await middleware(self.state, action)
+                }
+            }
+
+            for try await case let nextAction? in group where !Task.isCancelled {
+                try await dispatch(action: nextAction)
+            }
+        }
     }
 
     public var currentState: State {
