@@ -1,14 +1,14 @@
 import Foundation
 
-public final class Store<R: Reducer>: ObservableObject {
+public final class Store: ObservableObject {
     @Published public private(set) var state: State
     
-    private var reducer: R
+    private var reducer: Reducer
     private var middlewares: [Middleware]
     
     public init(
         initialState: State,
-        reducer: R,
+        reducer: Reducer,
         middlewares: [Middleware] = []
     ) {
         self.state = initialState
