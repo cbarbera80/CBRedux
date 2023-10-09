@@ -1,13 +1,13 @@
 import Foundation
 
-public final class Store: ObservableObject {
-    @Published public private(set) var state: State
+public final class Store<S: State>: ObservableObject {
+    @Published public private(set) var state: S
     
     private var reducer: Reducer
     private var middlewares: [Middleware]
     
     public init(
-        initialState: State,
+        initialState: S,
         reducer: Reducer,
         middlewares: [Middleware] = []
     ) {
@@ -18,7 +18,7 @@ public final class Store: ObservableObject {
     
     @MainActor
     public func dispatch(action: Action) async throws {
-        state = reducer.reduce(oldState: state, with: action)
+        state = reducer.reduce(oldState: state, with: action) as! S
         
         try await withThrowingTaskGroup(of: Action?.self) { group in
             for middleware in middlewares {
