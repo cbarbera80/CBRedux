@@ -1,6 +1,5 @@
 import Foundation
 
-public protocol ReducerProtocol {
-    associatedtype StateType
-    func reduce(oldState: StateType, with action: Action) -> StateType
+public protocol Reducer {
+    func reduce(oldState: State, with action: Action) -> State
 }

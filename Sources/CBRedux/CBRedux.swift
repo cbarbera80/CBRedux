@@ -1,17 +1,16 @@
 import Foundation
 
-public final class Store<State, R: ReducerProtocol, M: MiddlewareProtocol>: ObservableObject where R.StateType == State, M.StateType == State {
-
+public final class Store<R: Reducer>: ObservableObject {
     @Published public private(set) var state: State
     
     private var reducer: R
-    private var middlewares: [M]
+    private var middlewares: [Middleware]
     
     public init(
         initialState: State,
         reducer: R,
-        middlewares: [M] = []
-    )  {
+        middlewares: [Middleware] = []
+    ) {
         self.state = initialState
         self.reducer = reducer
         self.middlewares = middlewares
