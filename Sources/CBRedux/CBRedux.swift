@@ -1,19 +1,20 @@
 import Foundation
 
-public final class Store<State>: ObservableObject {
+public final class Store<State, R: ReducerProtocol, M: MiddlewareProtocol>: ObservableObject where R.StateType == State, M.StateType == State {
+
     @Published public private(set) var state: State
     
-    private var reducer: AnyReducer<State>
-    private var middlewares: [AnyMiddleware<State>]
+    private var reducer: R
+    private var middlewares: [M]
     
-    public init<R: ReducerProtocol, M: MiddlewareProtocol>(
+    public init(
         initialState: State,
         reducer: R,
         middlewares: [M] = []
-    ) where R.StateType == State, M.StateType == State {
+    )  {
         self.state = initialState
-        self.reducer = AnyReducer(reducer)
-        self.middlewares = middlewares.map(AnyMiddleware.init)
+        self.reducer = reducer
+        self.middlewares = middlewares
     }
     
     @MainActor
